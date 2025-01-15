@@ -1,0 +1,11 @@
+top=top
+
+# Clock and reset are handled internally
+# clk clk
+# rstn rstn
+
+# LED pins
+led (led7, led6, led5, led4, led3, led2, led1, led0)
+
+# Switch pins
+sw (sw7, sw6, sw5, sw4, sw3, sw2, sw1, sw0) 
