@@ -24,6 +24,7 @@ def generate_bind_code(pin_map, output_file):
         # 生成头文件
         f.write('#include "cakeboard.h"\n')
         f.write('#include "devices/led.h"\n')
+        f.write('#include "devices/switch.h"\n')
         f.write('#include "Vtop.h"\n\n')
 
         # 声明绑定函数 - 移除 extern "C"，因为这是C++代码
@@ -59,6 +60,35 @@ def generate_bind_code(pin_map, output_file):
                 # 绑定信号
                 for sig_name, sig_cfg in dev_config['signals'].items():
                     if sig_cfg['direction'] == 'in':
+                        generate_signal_bind_code(f, dev_id, sig_name, sig_cfg)
+            elif dev_config['type'] == 'switch_matrix':
+                # 创建开关设备配置
+                f.write(f'    cakeboard::SwitchConfig {dev_id}_cfg{{\n')
+                f.write(f'        .rows = {dev_config["rows"]},\n')
+                f.write(f'        .cols = {dev_config["cols"]},\n')
+                f.write('        .signal_widths = {')
+                
+                # 计算总位宽
+                total_width = 0
+                for sig_cfg in dev_config["signals"].values():
+                    if 'verilog_signals' in sig_cfg:
+                        for bit_range in sig_cfg['verilog_signals'].values():
+                            high, low = bit_range
+                            total_width += high - low + 1
+                    else:
+                        total_width += sig_cfg['width']
+                
+                f.write(f'{total_width}')
+                f.write('}\n    };\n\n')
+                
+                # 创建设备实例
+                f.write(f'    auto {dev_id} = std::make_shared<cakeboard::SwitchDevice>(\n')
+                f.write(f'        "{dev_id}",\n')
+                f.write(f'        {dev_id}_cfg);\n\n')
+                
+                # 绑定信号
+                for sig_name, sig_cfg in dev_config['signals'].items():
+                    if sig_cfg['direction'] == 'out':
                         generate_signal_bind_code(f, dev_id, sig_name, sig_cfg)
                 
                 f.write(f'    cakeboard::CakeBoard::getInstance().addDevice({dev_id});\n\n')
