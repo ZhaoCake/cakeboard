@@ -15,11 +15,8 @@ CakeBoard& CakeBoard::getInstance() {
     return instance;
 }
 
-void CakeBoard::init(int target_hz) {
-    targetHz = target_hz;
-    clocksPerFrame = target_hz / TARGET_FPS;
-    clockCounter = clocksPerFrame;
-    lastTickTime = getTimeUs();
+void CakeBoard::init() {
+    // 只进行基本初始化
 }
 
 void CakeBoard::quit() {
@@ -28,28 +25,8 @@ void CakeBoard::quit() {
 }
 
 void CakeBoard::update() {
-    if(--clockCounter < 0) {
-        uint64_t now = getTimeUs();
-        uint64_t elapsed = now - lastTickTime;
-        
-        if(elapsed == 0) return;
-        
-        // 动态调整每帧时钟数以维持目标频率
-        int newClocksPerFrame = ((uint64_t)clocksPerFrame * 1000000) / 
-                               (elapsed * TARGET_FPS);
-        
-        clockCounter += newClocksPerFrame;
-        clocksPerFrame = newClocksPerFrame;
-        
-        // 每帧更新一次设备状态
-        if(elapsed > 1000000 / TARGET_FPS) {
-            lastTickTime = now;
-            clockCounter = clocksPerFrame;
-            
-            processSignals();  // 先处理累积的信号
-            updateDevices();   // 再更新设备状态
-        }
-    }
+    processSignals();  // 处理信号
+    updateDevices();   // 更新设备状态
 }
 
 void CakeBoard::updateDevices() {
@@ -84,14 +61,7 @@ void CakeBoard::removeDevice(const std::string& deviceId) {
 }
 
 void CakeBoard::sendSignal(const std::shared_ptr<SignalPacket>& packet) {
-    packet->timestamp = getTimeUs();
     signalQueue.push_back(packet);
-}
-
-uint64_t CakeBoard::getTimeUs() {
-    return std::chrono::duration_cast<std::chrono::microseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()
-    ).count();
 }
 
 void CakeBoard::bindPin(void* signal, int len, ...) {

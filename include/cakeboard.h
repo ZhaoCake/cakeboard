@@ -1,16 +1,6 @@
 /**
  * @file cakeboard.h
  * @brief CakeBoard 仿真器核心头文件
- * @details 定义了仿真器的核心类和设备接口
- * 
- * CakeBoard 是一个基于信号包通信的FPGA仿真器框架。它提供了:
- * - 精确的时钟控制
- * - 设备管理机制
- * - 基于信号包的设备间通信
- * - 可扩展的设备接口
- * 
- * @author zhaocake
- * @date 2024
  */
 
 #pragma once
@@ -27,7 +17,6 @@ class Device;
 
 /**
  * @brief 信号包基类
- * @details 所有设备间传递的信号都需要继承自此类
  */
 struct SignalPacket {
     uint64_t timestamp;    ///< 信号产生的时间戳(微秒)
@@ -37,30 +26,23 @@ struct SignalPacket {
 
 /**
  * @brief CakeBoard仿真器核心类
- * @details 负责管理时钟、设备和信号的调度
  */
 class CakeBoard {
 public:
-    /**
-     * @brief 获取单例实例
-     * @return CakeBoard& 单例引用
-     */
     static CakeBoard& getInstance();
     
     /**
      * @brief 初始化仿真器
-     * @param target_hz 目标时钟频率(Hz)
      */
-    void init(int target_hz = 100000000);
+    void init();
     
     /**
-     * @brief 清理资源并关闭仿真器
+     * @brief 清理资源
      */
     void quit();
     
     /**
-     * @brief 更新仿真器状态
-     * @details 处理时钟、信号和设备更新,需要在主循环中持续调用
+     * @brief 更新设备状态
      */
     void update();
     
@@ -92,38 +74,20 @@ public:
      */
     void sendSignal(const std::shared_ptr<SignalPacket>& packet);
 
+    // 仿真器默认频率（50MHz）
+    static constexpr int SIMULATION_FREQ = 50000000;
+
 private:
     CakeBoard() = default;
     ~CakeBoard() = default;
     CakeBoard(const CakeBoard&) = delete;
     CakeBoard& operator=(const CakeBoard&) = delete;
 
-    /**
-     * @brief 获取当前时间(微秒)
-     * @return uint64_t 当前时间戳
-     */
-    uint64_t getTimeUs();
-    
-    /**
-     * @brief 更新所有设备状态
-     */
     void updateDevices();
-    
-    /**
-     * @brief 处理信号队列
-     * @details 将累积的信号分发给对应的设备
-     */
     void processSignals();
     
-    std::vector<std::shared_ptr<Device>> devices;      ///< 设备列表
-    std::vector<std::shared_ptr<SignalPacket>> signalQueue;  ///< 信号队列
-    
-    int targetHz{100000000};     ///< 目标频率
-    uint64_t lastTickTime{0};    ///< 上次时钟更新时间
-    int clocksPerFrame{1};       ///< 每帧时钟数
-    int clockCounter{0};         ///< 时钟计数器
-    
-    static constexpr int TARGET_FPS = 60;  ///< 目标帧率
+    std::vector<std::shared_ptr<Device>> devices;
+    std::vector<std::shared_ptr<SignalPacket>> signalQueue;
 };
 
 /**
