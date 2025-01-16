@@ -14,30 +14,35 @@ static TOP_NAME dut;
 class ClockControl {
 public:
     explicit ClockControl(int64_t period_ns) 
-        : period(std::chrono::nanoseconds(period_ns)) {
-        next_time = std::chrono::steady_clock::now();
+        : period(std::chrono::nanoseconds(period_ns)),
+          start_time(std::chrono::steady_clock::now()) {
+        next_time = start_time;
     }
 
     void tick() {
-        // 执行时钟周期
-        dut.clk = 0;
-        dut.eval();
-        dut.clk = 1;
-        dut.eval();
-        
-        // 更新下一个时钟周期的时间
-        next_time += period;
-        
-        // 如果落后于目标时间，等待
+        // 等待到下一个时钟周期
         auto now = std::chrono::steady_clock::now();
         if (now < next_time) {
             std::this_thread::sleep_until(next_time);
         }
+        next_time += period;
+
+        // 执行时钟周期
+        dut.clk = 1;
+        dut.eval();
+        dut.clk = 0;
+        dut.eval();
+
+        // 更新并显示仿真时间
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+            std::chrono::steady_clock::now() - start_time).count();
+        std::cout << "\rSimulation time: " << elapsed << "s" << std::flush;
     }
 
 private:
     std::chrono::nanoseconds period;
     std::chrono::steady_clock::time_point next_time;
+    std::chrono::steady_clock::time_point start_time;  // 仿真开始时间
 };
 
 static void reset(int n, ClockControl& clock) {
@@ -50,8 +55,9 @@ int main() {
     auto& board = cakeboard::CakeBoard::getInstance();
     board.init();
     
-    // 初始化时钟控制
-    ClockControl clock(1000000000 / cakeboard::CakeBoard::SIMULATION_FREQ);
+    // 使用较低的频率，比如100KHz
+    constexpr int SIMULATION_FREQ = 100000;  // 100KHz
+    ClockControl clock(1000000000 / SIMULATION_FREQ);
     
     // 绑定设备
     bind_all_devices(&dut);
@@ -65,7 +71,7 @@ int main() {
         }
     }
     catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        std::cerr << "\nError: " << e.what() << std::endl;
         board.quit();
         return 1;
     }

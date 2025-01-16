@@ -2,6 +2,7 @@
 #include <cstring>
 #include <bitset>
 #include <iostream>
+#include <iomanip>
 
 namespace cakeboard {
 
@@ -17,8 +18,8 @@ void LedDevice::update() {
     
     for (const auto& binding : signal_bindings) {
         if (binding.ptr) {
-            // 读取信号值
-            uint32_t value = *static_cast<uint8_t*>(binding.ptr);
+            // 读取信号值 - 使用 uint32_t 来确保能处理更大的位宽
+            uint32_t value = *static_cast<uint32_t*>(binding.ptr);
             
             // 如果指定了位域，提取相应的位
             if (binding.high_bit >= 0) {
@@ -44,6 +45,15 @@ void LedDevice::update() {
             bool state = getLedState(row, col);
             std::cout << (state ? "●" : "○") << " ";
         }
+        // 添加十六进制值显示
+        uint8_t value = 0;
+        for (int col = 0; col < 8; ++col) {
+            if (getLedState(row, col)) {
+                value |= (1 << col);
+            }
+        }
+        std::cout << " [0x" << std::hex << std::setw(2) << std::setfill('0') 
+                 << static_cast<int>(value) << std::dec << "]";
         std::cout << "\n";
     }
     std::cout << std::flush;

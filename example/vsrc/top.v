@@ -7,7 +7,7 @@ module top (
 );
 
     // 计数器用于流水灯
-    reg [31:0] counter;
+    reg [16:0] counter;  // 适应100KHz的时钟频率
     reg [7:0] pattern;
 
     always @(posedge clk or negedge rstn) begin
@@ -20,8 +20,8 @@ module top (
         end else begin
             counter <= counter + 1;
             
-            // 每秒更新一次（假设时钟频率为50MHz）
-            if (counter >= 50_000_000) begin
+            // 每秒更新一次（时钟频率为100KHz）
+            if (counter >= 100_000) begin  // 100K个周期
                 counter <= 0;
                 pattern <= {pattern[6:0], pattern[7]};  // 循环左移
                 
