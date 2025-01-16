@@ -42,7 +42,7 @@ public:
 private:
     std::chrono::nanoseconds period;
     std::chrono::steady_clock::time_point next_time;
-    std::chrono::steady_clock::time_point start_time;  // 仿真开始时间
+    std::chrono::steady_clock::time_point start_time;
 };
 
 static void reset(int n, ClockControl& clock) {

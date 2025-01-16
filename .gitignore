@@ -1,51 +1,31 @@
 # Build directories
 build/
-**/build/
+obj/
 obj_dir/
-**/obj_dir/
 
-# Compiled Object files
+# Generated files
 *.o
-*.obj
-*.elf
-*.ko
-
-# Compiled Static libraries
-*.lib
-*.a
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Executables
-*.exe
-*.out
-*.app
-
-# Verilator generated files
 *.d
-*.mk
-V*
-!V*.v
-!V*.sv
+*.a
+*.so
+*.log
+auto_bind.cpp
 
-# IDE specific files
+# IDE files
 .vscode/
 .idea/
 *.swp
-*.swo
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Backup files
 *~
-*.bak 
+
+# Verilator generated files
+V*.cpp
+V*.h
+V*.mk
+
+# Python cache
+__pycache__/
+*.pyc
+
+# System files
+.DS_Store
+Thumbs.db 
