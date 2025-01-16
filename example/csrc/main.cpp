@@ -1,11 +1,12 @@
 #include <cakeboard.h>
 #include <iostream>
-#include <iomanip>
-#include <cstdlib>
 #include <chrono>
 #include <thread>
 
 #include "Vtop.h"
+
+// 声明绑定函数
+void bind_all_devices(TOP_NAME* top);
 
 static TOP_NAME dut;
 
@@ -39,13 +40,6 @@ private:
     std::chrono::steady_clock::time_point next_time;
 };
 
-void print_signals() {
-    std::cout << std::hex << std::setfill('0')
-              << "led = 0x" << std::setw(2) << (int)dut.led
-              << " | sw = 0x" << std::setw(2) << (int)dut.sw
-              << std::dec << std::endl;
-}
-
 static void reset(int n, ClockControl& clock) {
     dut.rstn = 0;
     while (n-- > 0) clock.tick();
@@ -59,27 +53,15 @@ int main() {
     // 初始化时钟控制
     ClockControl clock(1000000000 / cakeboard::CakeBoard::SIMULATION_FREQ);
     
-    reset(10, clock);
-    dut.sw = 0;
-
-    int cycle_count = 0;
+    // 绑定设备
+    bind_all_devices(&dut);
     
+    reset(10, clock);
+
     try {
         while(1) {
             board.update();
-            
-            // 每1000个周期随机改变一次开关值
-            if(cycle_count % 1000 == 0) {
-                dut.sw = rand() & 0xFF;
-            }
-            
             clock.tick();
-            
-            // 每100个周期打印一次信号值
-            if(++cycle_count >= 100) {
-                print_signals();
-                cycle_count = 0;
-            }
         }
     }
     catch (const std::exception& e) {

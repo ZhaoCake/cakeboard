@@ -1,16 +1,36 @@
 module top (
     input clk,
     input rstn,
-    input [7:0] sw,
-    output reg [7:0] led
+    output reg [7:0] led_display,   // 显示用LED
+    output reg [7:0] debug_led,     // 调试用LED
+    output reg [7:0] status_led     // 状态LED
 );
 
-    // 简单的测试逻辑：LED显示开关的值
+    // 计数器用于流水灯
+    reg [31:0] counter;
+    reg [7:0] pattern;
+
     always @(posedge clk or negedge rstn) begin
-        if (!rstn)
-            led <= 8'h00;
-        else
-            led <= sw;
+        if (!rstn) begin
+            counter <= 0;
+            pattern <= 8'h01;
+            led_display <= 0;
+            debug_led <= 0;
+            status_led <= 0;
+        end else begin
+            counter <= counter + 1;
+            
+            // 每秒更新一次（假设时钟频率为50MHz）
+            if (counter >= 50_000_000) begin
+                counter <= 0;
+                pattern <= {pattern[6:0], pattern[7]};  // 循环左移
+                
+                // 更新不同的LED组
+                led_display <= pattern;
+                debug_led <= ~pattern;  // 反相显示
+                status_led <= pattern << 1;  // 错位显示
+            end
+        end
     end
 
 endmodule 

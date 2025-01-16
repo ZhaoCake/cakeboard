@@ -1,0 +1,36 @@
+{
+    "led_matrix": {
+        "type": "led_matrix",
+        "rows": 3,
+        "cols": 8,
+        "signals": {
+            "led": {
+                "width": 24,
+                "direction": "in",
+                "mapping": "sequential",
+                "verilog_signals": {
+                    "led_display": [7, 0],
+                    "debug_led": [15, 8],
+                    "status_led": [23, 16]
+                }
+            }
+        }
+    },
+    "switch_matrix": {
+        "type": "switch_matrix",
+        "rows": 2,
+        "cols": 4,
+        "signals": {
+            "sw": {
+                "width": 8,
+                "direction": "out",
+                "mapping": "sequential",
+                "verilog_signals": {
+                    "input_switch": [7, 0],
+                    "mode_select": [11, 8],
+                    "config_sw": [15, 12]
+                }
+            }
+        }
+    }
+} 
