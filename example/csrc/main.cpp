@@ -2,8 +2,13 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-
+#include <memory>
 #include "Vtop.h"
+
+// 确保TOP_NAME定义正确
+#ifndef TOP_NAME
+#define TOP_NAME Vtop
+#endif
 
 // 声明绑定函数
 void bind_all_devices(TOP_NAME* top);
@@ -52,19 +57,22 @@ static void reset(int n, ClockControl& clock) {
 }
 
 int main() {
-    auto& board = cakeboard::CakeBoard::getInstance();
-    board.init();
-    
-    // 使用较低的频率，比如100KHz
-    constexpr int SIMULATION_FREQ = 100000;  // 100KHz
-    ClockControl clock(1000000000 / SIMULATION_FREQ);
-    
-    // 绑定设备
-    bind_all_devices(&dut);
-    
-    reset(10, clock);
-
     try {
+        // 获取CakeBoard单例实例
+        auto& board = cakeboard::CakeBoard::getInstance();
+        if (!board.init()) {
+            throw std::runtime_error("Failed to initialize CakeBoard");
+        }
+        
+        // 使用较低的频率，比如100KHz
+        constexpr int SIMULATION_FREQ = 100000;  // 100KHz
+        ClockControl clock(1000000000 / SIMULATION_FREQ);
+        
+        // 绑定设备
+        bind_all_devices(&dut);
+        
+        reset(10, clock);
+
         while(1) {
             board.update();
             clock.tick();
@@ -72,10 +80,8 @@ int main() {
     }
     catch (const std::exception& e) {
         std::cerr << "\nError: " << e.what() << std::endl;
-        board.quit();
         return 1;
     }
     
-    board.quit();
     return 0;
 } 

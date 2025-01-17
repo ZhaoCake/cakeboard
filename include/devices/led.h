@@ -24,7 +24,7 @@ public:
 
     // 获取LED状态
     bool getLedState(int row, int col) const {
-        int idx = row * config.cols + col;
+        size_t idx = row * config.cols + col;
         return (idx < led_states.size()) ? led_states[idx] : false;
     }
 

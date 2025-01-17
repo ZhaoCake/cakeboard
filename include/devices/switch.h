@@ -24,13 +24,13 @@ public:
 
     // 获取开关状态
     bool getSwitchState(int row, int col) const {
-        int idx = row * config.cols + col;
+        size_t idx = row * config.cols + col;
         return (idx < switch_states.size()) ? switch_states[idx] : false;
     }
 
     // 设置开关状态
     void setSwitchState(int row, int col, bool state) {
-        int idx = row * config.cols + col;
+        size_t idx = row * config.cols + col;
         if (idx < switch_states.size()) {
             switch_states[idx] = state;
         }

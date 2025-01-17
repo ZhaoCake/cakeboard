@@ -4,6 +4,27 @@
  */
 
 #pragma once
+
+// C 接口声明
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// 导出的C接口函数声明
+int getLedRows();
+int getLedCols();
+bool getLedState(int row, int col);
+int getSwitchRows();
+int getSwitchCols();
+bool getSwitchState(int row, int col);
+bool updateSwitchState(int row, int col, bool state);
+
+#ifdef __cplusplus
+}
+#endif
+
+// C++部分需要的头文件
+#ifdef __cplusplus
 #include <memory>
 #include <vector>
 #include <chrono>
@@ -29,12 +50,20 @@ struct SignalPacket {
  */
 class CakeBoard {
 public:
-    static CakeBoard& getInstance();
+    static CakeBoard& getInstance() {
+        static CakeBoard instance;
+        return instance;
+    }
     
     /**
      * @brief 初始化仿真器
+     * @return bool 初始化是否成功
      */
-    void init();
+    bool init() {
+        devices.clear();
+        signalQueue.clear();
+        return true;
+    }
     
     /**
      * @brief 清理资源
@@ -58,14 +87,6 @@ public:
      * @param deviceId 设备标识符
      */
     void removeDevice(const std::string& deviceId);
-    
-    /**
-     * @brief 绑定信号到引脚
-     * @param signal 信号指针
-     * @param len 信号长度
-     * @param ... 引脚编号列表(从高位到低位)
-     */
-    void bindPin(void* signal, int len, ...);
     
     /**
      * @brief 发送信号包
@@ -143,4 +164,5 @@ private:
     std::string deviceId;  ///< 设备标识符
 };
 
-} // namespace cakeboard 
+} // namespace cakeboard
+#endif 

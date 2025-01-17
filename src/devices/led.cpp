@@ -4,6 +4,9 @@
 #include <iostream>
 #include <iomanip>
 
+// 声明外部引用
+extern cakeboard::LedDevice* current_led_device;
+
 namespace cakeboard {
 
 LedDevice::LedDevice(const std::string& id, const LedConfig& cfg)

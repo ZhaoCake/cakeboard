@@ -4,6 +4,9 @@
 #include <iostream>
 #include <iomanip>
 
+// 声明外部引用
+extern cakeboard::SwitchDevice* current_switch_device;
+
 namespace cakeboard {
 
 SwitchDevice::SwitchDevice(const std::string& id, const SwitchConfig& cfg)

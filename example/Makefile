@@ -1,6 +1,10 @@
 TOPNAME = top
 NXDC_FILES = constr/top.nxdc
-INC_PATH ?=
+VERILATOR_HOME ?= /usr/share/verilator
+CAKEBOARD_HOME ?= ..
+
+# 添加动态库路径
+export LD_LIBRARY_PATH := $(CAKEBOARD_HOME)/build:$(LD_LIBRARY_PATH)
 
 VERILATOR = verilator
 VERILATOR_CFLAGS += -MMD --build -cc  \
@@ -10,23 +14,16 @@ BUILD_DIR = ./build
 OBJ_DIR = $(BUILD_DIR)/obj_dir
 BIN = $(BUILD_DIR)/$(TOPNAME)
 
-# 检查CAKEBOARD_HOME环境变量
-ifeq ($(CAKEBOARD_HOME),)
-$(error Please set CAKEBOARD_HOME environment variable)
-endif
+# 编译选项
+CXX = g++
+CXXFLAGS = -std=c++17 -Wall -I$(CAKEBOARD_HOME)/include \
+           -I$(VERILATOR_HOME)/include -I$(BUILD_DIR) \
+           -DTOP_NAME=Vtop
+LDFLAGS = -L$(CAKEBOARD_HOME)/build -lcakeboard
 
-# 创建构建目录
-$(shell mkdir -p $(BUILD_DIR))
-
-# 添加 cakeboard 库的头文件路径
-INC_PATH += $(CAKEBOARD_HOME)/include
-
-# 添加 cakeboard 库的链接路径和库名
-LDFLAGS += -L$(CAKEBOARD_HOME)/build -lcakeboard
-
-# project source
-VSRCS = $(shell find $(abspath ./vsrc) -name "*.v")
-CSRCS = $(shell find $(abspath ./csrc) -name "*.c" -or -name "*.cc" -or -name "*.cpp")
+# 源文件
+VSRCS = $(shell find vsrc -name "*.v")
+CSRCS = $(shell find csrc -name "*.cpp")
 
 # 自动生成的设备绑定代码
 AUTO_BIND_CPP = $(BUILD_DIR)/auto_bind.cpp
@@ -36,11 +33,10 @@ $(AUTO_BIND_CPP): devices/pin_map.json
 	@mkdir -p $(dir $@)
 	python3 $(CAKEBOARD_HOME)/scripts/pin_bind_gen.py $< $@
 
-# 添加自动生成的代码到源文件列表（移到前面）
 CSRCS += $(AUTO_BIND_CPP)
 
-# 确保在编译前生成绑定代码和库
-$(BIN): $(AUTO_BIND_CPP) $(VSRCS) $(CSRCS) $(CAKEBOARD_ARCHIVE)
+# 编译规则
+$(BIN): $(AUTO_BIND_CPP) $(VSRCS) $(CSRCS)
 	@rm -rf $(OBJ_DIR)
 	$(VERILATOR) $(VERILATOR_CFLAGS) \
 		--top-module $(TOPNAME) $^ \
@@ -48,19 +44,12 @@ $(BIN): $(AUTO_BIND_CPP) $(VSRCS) $(CSRCS) $(CAKEBOARD_ARCHIVE)
 		$(addprefix -LDFLAGS , $(LDFLAGS)) \
 		--Mdir $(OBJ_DIR) --exe -o $(abspath $(BIN))
 
-# rules for CakeBoard
-include $(CAKEBOARD_HOME)/scripts/cakeboard.mk
-
-# rules for verilator
-INCFLAGS = $(addprefix -I, $(INC_PATH))
-CXXFLAGS += $(INCFLAGS) -DTOP_NAME="\"V$(TOPNAME)\""
-
 default: $(BIN)
 
 all: default
 
 run: $(BIN)
-	@$^
+	@./run.sh
 
 clean:
 	rm -rf $(BUILD_DIR)

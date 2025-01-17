@@ -19,7 +19,20 @@ def generate_signal_bind_code(f, dev_id, sig_name, sig_cfg, indent="    "):
         f.write(f'{indent}{dev_id}->bindSignal("{sig_name}", '
                f'&top->{v_sig}, {sig_cfg["width"]});\n')
 
-def generate_bind_code(pin_map, output_file):
+def generate_bind_code(pin_map):
+    code = """
+#include "Vtop.h"
+#include "cakeboard.h"
+
+// 定义顶层模块类型
+#ifndef TOP_NAME
+#define TOP_NAME Vtop
+#endif
+
+// 设备绑定函数
+void bind_all_devices(TOP_NAME* top) {
+    auto& board = cakeboard::CakeBoard::getInstance();
+"""
     with open(output_file, 'w') as f:
         # 生成头文件
         f.write('#include "cakeboard.h"\n')
